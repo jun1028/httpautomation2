@@ -1,0 +1,1 @@
+{"bindStatus":1,"errorLevel":0,"errorMsg":{"content":"WMSG.COMMON_USER_NOT_LOGIN"},"loginStatus":0,"success":false,"traceInfo":"","userFlag":0,"version":0}
