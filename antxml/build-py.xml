@@ -3,7 +3,7 @@
 	<taskdef resource="pyAntTasks.properties"/> 
 	<property name="src" value="${basedir}/src" />
 	<property name="dest" value="${basedir}/classes" />
-	<property name="testcases" value="${basedir}/testcases" />
+	<property name="testcases" value="${basedir}" />
 	<property name="mailzip" value="${basedir}/mailzip" />
 	<property name="out" value="${basedir}/reports" />
 	<path id="pythonpath">
@@ -30,7 +30,7 @@
 	</target>
 	<target name="run_tests" depends="init">
 		<echo>running tests</echo>
-		<py-run script="${src}/runner/Runner.py" python="python"
+		<py-run script="${src}/runner/${testrunner.filename}" python="python"
                  pythonpathref="pythonpath" >
 			<arg value="${testcases}/${testcase.filename}"/>
     	</py-run>
@@ -45,7 +45,7 @@
 	<target name="sendmail"  depends="make_data_zip">
 		<echo>send mail</echo>
 		<tstamp />
-		<mail messageMimeType="text/html" message="hello, water, pls check your mail" tolist="jun_1910310@163.com,zzj@moojnn.com,,xuh@moojnn.com" mailhost="smtp.163.com" ssl="true" mailport="465" subject="automation test" 	from="jun_1910310@163.com" user="jun_1910310@163.com" password="ufo*911">
+		<mail messageMimeType="text/html" message="hello, dear, pls check your mail" tolist="jun_1910310@163.com,zzj@moojnn.com,,xuh@moojnn.com" mailhost="smtp.163.com" ssl="true" mailport="465" subject="automation test" 	from="jun_1910310@163.com" user="jun_1910310@163.com" password="ufo*911">
 		<fileset dir="${out}">
 			<include name="summary.html" />
 		</fileset>

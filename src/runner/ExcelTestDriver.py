@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
 # package: runner.ExcelTestDriver
 '''
@@ -5,17 +6,20 @@
 '''
 
 
-import datetime
-import os, sys
-import types
-import GlobalSetting
-from fixture.ExcelColumnFixture import ExcelColumnFixture
+from cfg import GlobalSetting
+from cfg.GlobalSetting import AUTOMATIONOPENREPORT
+from fixture.CommonColumnFixture import CommonColumnFixture
 from log.Log import Log
-import util.excel
+from util.excel.ExcelHtmlTable import ExcelHtmlTable
+import datetime
+import os
+import sys
+import types
 
 #UnicodeEncodeError: 'ascii' codec can't encode characters
 reload(sys)
 sys.setdefaultencoding('utf-8')
+
 
 class ExcelTestDriver(object):
     '''
@@ -28,16 +32,16 @@ class ExcelTestDriver(object):
             sys.stderr.write("usage: python input-file(test case excel file) output-file(test report name)\n")
             sys.exit(-1)
         self.infilename = argv[1]
+        self.fixture = None
 
     def __call__(self):
         self.setUp()
         self.runTest()
         self.tearDown()
-        self.exit()
+#        self.exit()
 
     def runTest(self):
         Log.debug('start: ExcelTestDriver.runTest')
-        fixture = None
         starttime = datetime.datetime.now()
         runTime = 0
         iterationCount = GlobalSetting.ITERATION
@@ -46,19 +50,17 @@ class ExcelTestDriver(object):
         count = 0
         while True:
             count += 1
-            fixture = ExcelColumnFixture()
-            excelAPP = util.excel.ExcelAppRD()
-            excelAPP.openExcel(self.infilename)
+            self.fixture = CommonColumnFixture()
+            htmlTable = ExcelHtmlTable()
+            htmlTable.openExcel(self.infilename)
             print 'now start to test......'
             reportFileName = 'report'
             if count > 1:
                 reportFileName = 'report' + str(count)
-            fixture.dosheets(excelAPP, reportFileName)
+            self.fixture.doTables(htmlTable, reportFileName)
             endtime = datetime.datetime.now()
             runTime = (endtime - starttime).seconds
             print 'run time(seconds) is: ' + str(runTime)
-            #Log.debug('open report ' + str(fixture.reportNameList))
-            fixture.openFileReport()
             if GlobalSetting.RUNTIME > 0:
                 if runTime > GlobalSetting.RUNTIME:
                     break
@@ -73,7 +75,9 @@ class ExcelTestDriver(object):
         print 'set up(initial) test environment'
 
     def tearDown(self):
-        print 'tear down environment'
+        if AUTOMATIONOPENREPORT:
+            self.fixture.openFileReport()
+        print 'test finished'
         Log.close()
 
     def exception(self, e):

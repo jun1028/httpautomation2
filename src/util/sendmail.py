@@ -1,16 +1,12 @@
 # -*- coding: UTF-8 -*-
+from cfg.MailConf import DEFAULTTOMAILRECEIVERFILE, SENDER, SMTPSERVER, USERNAME, \
+    PWD, USEDEFAULTMAIL
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from log.Log import Log
 from os.path import os
 import smtplib
-import sys
-
-DEFAULTTOMAILRECEIVERFILE = 'conf' + os.sep + 'receiver.txt'
-USEDEFAULTMAIL            = False
-SENDER = 'zhangzhijun@***.com'
-SMTPSERVER = 'smtp.gmail.com'
-USERNAME = 'zhangzhijun@***.com'
-PWD = '123456'
+import time
 
 
 #from email.mime.image import MIMEImage
@@ -38,37 +34,44 @@ def genAttchment(attachment, name='test_report.html'):
 
 
 def sendmail(subject, text, attachment1=None, \
-             attachment2=None, receiver='zhangzhijun@odianyun.com'):
+             attachment2=None, receiver=''):
     msgRoot = MIMEMultipart('related')
     msgRoot['Subject'] = subject
-    content = MIMEText('<b>' + text + '</b>', 'html')
+    #“发件人和收件人参数没有进行定义,解决相关邮箱的554, 'DT:SPM的错误
+    msgRoot['from'] = SENDER
+    msgRoot['to']   = 'zzj@moojnn.com'
+    #add utf-8,避免邮件正文乱码， content["Accept-Charset"]  = "ISO-8859-1,utf-8"
+    content = MIMEText('<b>' + text + '</b>', 'html', 'utf-8')
+    content["Accept-Language"] = "zh-CN"
+    content["Accept-Charset"]  = "ISO-8859-1,utf-8"
     msgRoot.attach(content)
     if attachment1 and os.path.exists(attachment1):
         msgRoot.attach(genAttchment(attachment1))
-    smtp = smtplib.SMTP_SSL()
+#    smtp = smtplib.SMTP_SSL() #ssl 连接
     try:
-        smtp.connect(SMTPSERVER)
-    except:
-        print 'can not connect'
+        smtp = smtplib.SMTP(SMTPSERVER)
+    except BaseException, e:
+        Log.debug('mail server connect fail', e)
         return
     smtp.login(USERNAME, PWD)
     if USEDEFAULTMAIL:
         try:
             receivers = getToMaillist()
         except Exception, e:
-            print 'get mail list fail!'
-            print e
-            sys.exit()
+            Log.debug('get mail list fail!', e)
     else:
         if receiver.find('@') > -1:
             receivers = receiver.split(';')
         else:
+            message = 'receiver is null'
+            Log.debug(message)
+            print message
             return
     smtp.sendmail(SENDER, receivers, msgRoot.as_string())
     print 'send ok, please check your mail'
-    #time.sleep(10)
+    time.sleep(10)
     smtp.quit()
 
 if __name__ == '__main__':
-    sendmail(' test report', 'This E-mail sent automatically by the automation testing platform!', \
-             attachment1 = 'x.html')
+    sendmail(' test report', 'This E-mail sent automatically by the automation testing platform!' \
+        ) #attachment1 = 'x.html'

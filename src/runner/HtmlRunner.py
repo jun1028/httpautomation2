@@ -2,14 +2,17 @@
 @author: water
 '''
 
-import os, sys, stat
-import types
-import time,datetime
-import webbrowser
-import GlobalSetting
-from log.Log import Log
-from fit.Parse import Parse
+from cfg import GlobalSetting
 from fit.Fixture import Fixture
+from fit.Parse import Parse
+from log.Log import Log
+import os
+import sys
+import stat
+import time
+import datetime
+import types
+import webbrowser
 
 class HtmlRunner():
     

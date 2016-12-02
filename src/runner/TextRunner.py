@@ -5,17 +5,18 @@
 @author: Water.Zhang
 '''
 
-import sys, os
-import time, datetime
-import types
-
+from cfg import GlobalSetting
 from fixture.TextFixture import TextFixture
 from log.Log import Log
-from runner import GlobalSetting
+import datetime
+import os
+import sys
+import time
+import types
 
 
 class TextRunner():
-    
+
     '''
     run all test cases of html tables
     support stress test
@@ -33,9 +34,8 @@ class TextRunner():
             self.outreportname = time.strftime('%Y-%m-%d-%H-%M-%S') + 'report.html'
         elif(len(argv) > 2):
             self.outreportname = argv[2]
-            
         self.textfilename = argv[1]
-    
+
     def __call__(self):
         self.setUp()
         self.runTest()
@@ -61,7 +61,7 @@ class TextRunner():
             iterationCount = GlobalSetting.ITERATION
             if type(iterationCount) != types.IntType:
                 iterationCount = 0
-            while True:       
+            while True:
                 path = 'reports\\'
                 if not os.path.exists(path):
                     os.mkdir(path)   
@@ -90,14 +90,14 @@ class TextRunner():
             os._exit(0)
         Log.debug('end: HtmlRunner.runTest')
         return 
-                
+
     def setUp(self):
         print 'set up(initial) test environment'
-        
+
     def tearDown(self):
         print 'test down environment'
         Log.close()
-        
+
     def exit(self):
         try:
             #self.outfile.close()

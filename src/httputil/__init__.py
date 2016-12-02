@@ -7,7 +7,7 @@
 from log.Log import Log
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
-from util.jsonutil import strToDict
+from util.jsonutil import strToDict, dictToStr
 import StringIO
 import cookielib
 import gzip
@@ -18,7 +18,6 @@ import re
 import sys
 import urllib
 import urllib2
-
 
 try:
     import httplib2
@@ -77,13 +76,15 @@ class HttpClientUtil(object):
         else:
             print 'does not implement!'
         return response  
-    
+
     def dorequest(self, url, args=None, \
                         content_type=None, \
                         methodname='POST'):
         response = None
-        Log.debug('url:', url)
-        Log.debug('args:', args)
+        Log.info('url:', url)
+        Log.info('args:', args)
+        Log.info('request method:', methodname)
+#        args = self.reqargsencode(args)
         self.setHeader()
         if methodname.upper() == 'POST':
             response = self.httppost(url, args, content_type)
@@ -94,7 +95,11 @@ class HttpClientUtil(object):
                 response = self.uploadfile(url, args, content_type)
             else:
                 Log.error('filepath is not exists: ', args)
-                response = 'filepath is not exists:'
+                response = 'filepath does not exists'
+        elif methodname.upper() == 'DELETE':
+            response = self.delete(url, args, content_type)
+        elif methodname.upper() == 'PUT':
+            response = self.put(url, args, content_type)
         else:
             print 'does not implement!'
 #        try:
@@ -119,7 +124,7 @@ class HttpClientUtil(object):
         params = ''
         Log.debug('start get' + self._CLASSNAME)
         if args and not isinstance(args, dict):
-            args = self.strToDict(args)
+            args = self.strToJson(args)
         if args:
             params = urllib.urlencode(args)
         if params:
@@ -161,7 +166,8 @@ class HttpClientUtil(object):
     def do(self, url, args, methodname='POST'):
         http = httplib2.Http()
         if hasattr(self, 'cookie') and len(self.cookie) > 1:
-            self.headers['Cookie'] = self.cookie
+            if self.cookie.find('JSESSIONID') > -1:
+                self.headers['Cookie'] = self.cookie
         if isinstance(args, dict):
             body = urllib.urlencode(args)
         else:
@@ -171,23 +177,32 @@ class HttpClientUtil(object):
             body = ''
         Log.debug('url:', url)
         Log.debug('methodname:', methodname)
-        Log.debug('Content-type:', self.headers)
+        Log.debug('headers:', self.headers)
         response = http.request(url, methodname, \
                                 headers=self.headers, body=body)
         return response
 
     def put(self, url, args):
-        return self.do(url, args, methodname='put')
+        return self.do(url, args, methodname='PUT')
 
     def delete(self, url, args, content_type=None):
-        return self.do(url, args, methodname='delete')
+        return self.do(url, args, methodname='DELETE')
 
     def post(self, url, args):
         return self.do(url, args, methodname='post')
-    
+
+    def reqargsencode(self, args):
+        Log.debug('args type', type(args))
+        args = dictToStr(args)
+        args = strToDict(args)
+        Log.debug('args:', args)
+        Log.debug('args type:', type(args))
+        return args
+
     def setHeader(self):
         if hasattr(self, 'cookie') and len(self.cookie) > 1:
-            self.headers['Cookie'] = self.cookie
+            if self.cookie.find('JSESSIONID') > -1:
+                self.headers['Cookie'] = self.cookie
         if hasattr(self, 'referer') and len(self.referer) > 1:
             self.headers['Referer'] = self.referer
                 
@@ -204,7 +219,7 @@ class HttpClientUtil(object):
                 self.cookie = info['Set-Cookie']
         except:
             Log.debug('proceHeadInfo error') 
-        
+
     def uploadfile(self, url, filepath, content_type="multipart/form-data"):
         register_openers()
         fi = open(filepath, "rb")
@@ -217,7 +232,7 @@ class HttpClientUtil(object):
         return response
 
     def postAndCooks(self, url, args, content_type=None):
-        argDict = self.strToDict(args) 
+        argDict = self.strToJson(args) 
         data = urllib.urlencode(argDict)
         urls = url.split('/')
         h = httplib.HTTPConnection(urls[2])
@@ -276,8 +291,9 @@ class HttpClientUtil(object):
         return strData + '}'
     
     def setCookie(self, cookie):
-        self.cookie = cookie
-        
+        if cookie:
+            self.cookie = cookie
+
     def getCookie(self, respInfo):
         cookie = ''
         try:
@@ -289,20 +305,4 @@ class HttpClientUtil(object):
 #test
 if __name__ == '__main__':
     client = HttpClientUtil()
-    args = strToDict("{'password': 'e10adc3949ba59abbe56e057f20f883e', 'name': '18015505671L', 'code': ''}")
-    resp = client.dorequest("http://pre.moojnn.com/mojing-server/login ", args)
-    client.cookie = resp.info()['Set-Cookie']
-#    client.cookie ='JSESSIONID=2851EAEB5A2DFBBC68E5F0E9C0B8DA42; Path=/mojing-server/; HttpOnly, SERVERID=acbb2b8523be9629ba66f0a82e331010|1478163624|1478163624;Path=/'
-    client.referer = "http://pre.moojnn.com/datasource.html" 
-    client.uploadfile("http://pre.moojnn.com/mojing-server/ds/fileupload", "C:\\Users\\water\\Desktop\\test.txt")
-#    args = strToDict("{'password': 'e10adc3949ba59abbe56e057f20f883e', 'name': '18015505671L', 'code': ''}")
-#    client.dorequest("http://pre.moojnn.com/mojing-server/login ", args)
-#     try:
-#         req = urllib2.Request(url)
-#         res = urllib2.urlopen(req)
-#         print res.read()
-#     except urllib2.HTTPError as http_error:
-#         import zlib
-#         print zlib.decompress(http_error.read(), 30)
-#     print 'd'
 

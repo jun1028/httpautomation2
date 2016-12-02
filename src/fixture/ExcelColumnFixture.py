@@ -155,6 +155,9 @@ class ExcelColumnFixture(Report):
         try:
             startcolumnPos = 0
             heads, rowpos = self.getHeads(rowpos, startcolumnPos, ncols)
+            if not heads:
+                print 'heads is empty, maybe something wrong!!!'
+                sys.exit()
             self.heads = self.stripHeads(heads)  # strip space , '\n'
             self.colspan = len(self.heads)
             self.repstr += self.getReportTitle(self.title)
@@ -174,7 +177,7 @@ class ExcelColumnFixture(Report):
             self.bind(self.heads)
             row = rowpos
             while row < nrows:
-                self.restInitVar()
+                self._clearPreviousTestCaseInfo() #清楚上一个测试用例的信息
                 rowdata, row = self.doCells(row, startcolumnPos, ncols, nrows)
                 self.repstr += self.getReportTableRow(rowdata)
                 if self.results[self.testCaseId] == 'fail' :
@@ -219,11 +222,13 @@ class ExcelColumnFixture(Report):
             self.check(cell, a)
         Log.debug('end: ExcelColumnFixture.doCell')
     
-    def restInitVar(self):
+    def _clearPreviousTestCaseInfo(self):
         if hasattr(self, 'url'):
             self.url = ''
         if hasattr(self, 'expected'):
             self.expected = ''
+        if hasattr(self, 'userdefinefixtureresult'):
+            self.userdefinefixtureresult = {}
                 
     def resetReportFileName(self, reportFileName, sheetName):
         if reportFileName.find('.html') > -1:
@@ -278,6 +283,8 @@ class ExcelColumnFixture(Report):
         col = startcolumnPos
         while col < ncols:
             columnName = self.strip(self.excelAPP.getCellStrValue(rowpos, col))
+            if not (columnName and len(columnName) > 0):
+                col += 1;continue
             ##如果包含result关键字，表明此列为方法列
             if columnName.lower().find('expect') > -1 \
                 or columnName.find('()') > -1:
@@ -287,7 +294,8 @@ class ExcelColumnFixture(Report):
                 self.posDict['methodPos'] = col
                 break  # will remove
             else:
-                heads.append(columnName)
+                if columnName:
+                    heads.append(columnName)
                 col += 1
         Log.debug('end getHeads: ' + self._CLASSNAME)
         return heads, rowpos + 1
@@ -447,7 +455,7 @@ class ExcelColumnFixture(Report):
 
     # run test
     def check(self, cell, a):
-        Log.debug('start: ExcelColumnFixture.check')
+        Log.debug('start: ExcelColumnFixture.check', self._CLASSNAME)
         ignoreFlag = False
         if self.testCaseIdRangeFlag:  # execute test by test case id range
             Log.debug('testCaseIdRangeFlag is True')
@@ -466,8 +474,8 @@ class ExcelColumnFixture(Report):
         if ignoreFlag:
             return 
         self.runTest(cell, a)
-        Log.debug('end: ExcelColumnFixture.check')
-        
+        Log.debug('end: ExcelColumnFixture.check', self._CLASSNAME)
+
     def genHtmlfile(self, repstr, filename):
         Log.debug('start genHtmlfile: ' + self._CLASSNAME)
         try:
@@ -508,10 +516,14 @@ class ExcelColumnFixture(Report):
             self.repstr += self.getReportTableHeader()
             columnNames = ['filepath', 'summary result', 'detail reporter url']
             self.repstr += self.getReportTableColumnName(columnNames)
+            totalright = 0
+            totalwrong = 0
             for reportName in self.reportNameList:
                 try:
                     reportfilename = reportName.split(os.sep)[-1]
                     counts = self.summaryCounts[reportfilename]
+                    totalright += counts.right
+                    totalwrong += counts.wrong
                 except BaseException, e:
                     Log.error(e)
                     counts = 'ERROR:NO DATA'
@@ -536,6 +548,8 @@ class ExcelColumnFixture(Report):
 #                     self.cpuChart = Cell('<a href=..\\%s>open cpu chart</a>' \
 #                                      %self.cpuRatioChartMap[reportName])
                 self.repstr += self.getReportTableRow(rowdata)
+            self.repstr += '<h2>total pass :' + str(totalright) \
+                        + ', total fail :' + str(totalwrong) + '<h2>'
             self.repstr += self.getReportTail()
             self.summaryReport.write(self.repstr)
             self.summaryReport.flush()

@@ -8,6 +8,7 @@ import sys
 from fit.FileRunner import FileRunner
 from fit.Parse import Parse
 
+
 class WikiRunner(FileRunner):
     def __call__(self):
         try:

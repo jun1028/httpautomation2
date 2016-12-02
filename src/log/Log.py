@@ -3,9 +3,10 @@
 
 @author: Water
 '''
-import os
+from cfg import LogSetting
+from util.BaseUtils import getTime
 import logging
-import LogSetting
+import os
 
 
 class Log():
@@ -43,7 +44,7 @@ class Log():
                     if os.path.exists(LogSetting.LOG_FILE):
                         filename = LogSetting.LOG_FILE
                     else:
-                        filename = 'log.log'
+                        filename = 'log' + os.sep + 'log_' + getTime() + '.log'
                     Log._fileHdlr = logging.FileHandler(\
                                             filename, LogSetting.LOG_FILEMODE)
                     formatter = logging.Formatter(\
@@ -56,8 +57,10 @@ class Log():
         return Log._logger
 
     @staticmethod
-    def info(msg):
+    def info(msg, comment=''):
         try:
+            if comment:
+                msg = str(msg) + ' ' + str(comment)
             Log.getlog().info(msg)
         except:
             pass

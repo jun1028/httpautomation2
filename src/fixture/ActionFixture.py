@@ -5,6 +5,11 @@
 '''
 __version__ = '1.0'
 
+from cfg import GlobalSetting
+from fixture.Actions import Actions
+from log.Log import Log
+from util.Report import Report
+from util.sendmail import sendmail
 import datetime
 import json
 import os
@@ -14,13 +19,8 @@ import time
 import traceback
 import urllib
 import urllib2
-
-from fixture.Actions import Actions
-from log.Log import Log
-from runner import GlobalSetting
-from util.Report import Report
 import util.excel
-from util.sendmail import sendmail
+
 
 
 TESTFLAG = False
@@ -33,11 +33,10 @@ class ActionFixture(Report):
     1.解析基于step的测试用例
     2.生成HTML测试报告
     """
-    _CLASSNAME        = 'ActionFixture'
+    _CLASSNAME        = 'fixture.ActionFixture'
     # 用于标记excel文件中测试步骤开始的位置的标示 当读到excel中的cell 中含有step字符串时候，即开始执行测试
     _STARTSTEP        = 'step' 
-    
-    
+
     def __init__(self, isMakeReporterFlag=True):
         self.needSendmail = GlobalSetting.NEEDSENDMAIL
 

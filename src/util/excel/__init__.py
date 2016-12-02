@@ -38,10 +38,10 @@ class ExcelAppRD(object):
                 raise IOError
         except BaseException, e:
             print e
-            
+
     def getShNameList(self):
         return self.lShNames
-        
+
     def getShByName(self, name):
         sheet = None
         try:
@@ -51,7 +51,7 @@ class ExcelAppRD(object):
             print e
             print 'specify sheet does not exist'
         return sheet
-            
+
     def getShByIndex(self, index):
         sheet = None
         try:
@@ -61,7 +61,7 @@ class ExcelAppRD(object):
             print 'index error,the max index is:' + str(self.numOfShs)
             print e
         return sheet
-    
+
     def getCell(self, row, col, sheet = None):
         cell = None
         if sheet is None:
@@ -71,7 +71,7 @@ class ExcelAppRD(object):
         except BaseException, e:
             print e
         return cell
-         
+
     def getCellStrValue(self, row, col, sheet = None):
         value = ''
         if sheet is None:
@@ -81,26 +81,26 @@ class ExcelAppRD(object):
         except BaseException, e:
             print e
         return value
-        
+
     def getCurSheet(self):
         return self.curSheet
-    
+
     def getnRows(self, sheet = None):
         return self.curSheet.nrows
-    
+
     def getnCols(self, sheet = None):
         return self.curSheet.ncols 
-    
+
     def getRow(self, index, sheet = None):
         rows = None
         if sheet is None:
             sheet = self.curSheet
         rows = sheet.row(index)
         return rows
-    
+
     def setSheet(self, sheet):
         self.curSheet = sheet 
-        
+
 #     Type symbol     Type number Python value 
 #     XL_CELL_EMPTY   0           empty string u'' 
 #     XL_CELL_TEXT    1           a Unicode string 
@@ -124,8 +124,7 @@ class ExcelAppRD(object):
         else:
             value = str(cellValue)   
         return value
-         
-                       
+
 if __name__ == "__main__":
     test = ExcelAppRD()
     test.openExcel('test.xlsx')

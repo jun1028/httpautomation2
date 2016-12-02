@@ -4,7 +4,7 @@
 '''
 from httputil import HttpClientUtil
 from log.Log import Log
-from util.jsonutil import strToDict
+from util.jsonutil import strToJson
 import re
 import sys
 
@@ -33,14 +33,18 @@ class LoginFixture(object):
         cookie = ''
         Log.debug('login params: ', params)
         if type(params) == str or type(params) == unicode:
-            params = strToDict(params)
+            params = strToJson(params)
             if 'url' in params:
                 if params['url'].find("http") < 0:
                     url = 'http://'  + params.pop('url')
                 else:
                     url = params.pop('url')
-                resp = self.client.dorequest(url, params, \
+                try:
+                    resp = self.client.dorequest(url, params, \
                                                  methodname='post')
+                except BaseException, e:
+                    Log.error('client.dorequest error', e)
+                    resp = None
                 if not resp:
                     print 'login fail, test over!' 
                     sys.exit()
@@ -61,15 +65,16 @@ class LoginFixture(object):
         cookie = ''
         try:
             if info and 'Set-Cookie' in info:
-                cookie = info['Set-Cookie']
+#                if str(info['Set-Cookie']).find('JSESSIONID') > -1:
+                cookie = info['Set-Cookie'] 
         except BaseException, e:
             Log.error("get cookie value error", e)  
         return cookie
-                
+
     def getToken(self, respdata, returnparam):
         tokenvalue = ''
         try:
-            jsonResult = strToDict(respdata)
+            jsonResult = strToJson(respdata)
             if not returnparam:
                 if jsonResult and 'data' in jsonResult:
                     data = jsonResult["data"]
@@ -85,6 +90,6 @@ class LoginFixture(object):
                     tokenvalue = re.findall(returnparam, respdata, re.IGNORECASE)[0]
                     tokenvalue = tokenvalue.split(":")[-1]
         except BaseException, e:
-            Log.error("get token value error", e)  
+            Log.error("get token value error,  you can ignore it", e)
         Log.debug("token is ",  tokenvalue)
         return tokenvalue

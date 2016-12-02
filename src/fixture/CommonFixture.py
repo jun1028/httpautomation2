@@ -89,16 +89,16 @@ class CommonFixture(object):
         if self.loginInfo and 'ut' in self.loginInfo:
             Log.debug("loginInfo", self.loginInfo)
             self.args['ut'] = self.loginInfo['ut']
-    
+
     def addSpeficPreResultToParams(self):
         if hasattr(self, 'preResultInfo') and self.preResultInfo is dict:
             self.args.update(self.preResultInfo)
-    
+
     def setUrl(self):
         if not hasattr(self, 'url') or not self.url:
             self.url = self.interface + self.function
         return self.url
-    
+
     #从测试文件，如excel或许excel中获取fixturename 列，并调用其run(),
     #@return result type, dict    
     def getFixture(self):
